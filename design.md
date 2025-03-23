@@ -7,19 +7,19 @@ The goal of the initial phase is to support simple database operations. Users wi
 ### Create
 
 ```
-dbManager := modb.New(args)
+dbManager := db.NewManager(args)
 dbManager.Start()
-dbManager.CreateDb(dbName)
-dbManager.CreateTable(DbName, tblName)
-dbManager.CreateColumn(dbName, tblName, colName1)
-dbManager.CreateColumn(dbName, tblName, colName2)
+database, _ := dbManager.CreateDb(dbName)
+tbl, _ := database.CreateTable(tblName)
+col1, _ := tbl.CreateColumn(colName1)
+col2, _ := tbl.CreateColumn(colName2)
 ```
 
 ### Insert
 
 ```
-dbManager.LoadColumn(dbName, tblName, colName, colValSlice)
-dbManager.InsertRow(dbName, tblName, rowValSlice)
+col1.LoadColumn(colValSlice)
+tbl.InsertRow(rowValSlice)
 ```
 
 ### Get
