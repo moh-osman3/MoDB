@@ -51,7 +51,7 @@ func (col *column) InsertItem(item int64) error {
 func (col *column) resizeData(newLength int64) {
 	newData := make([]int64, newLength)
 
-	for i := range int(col.numItems) {
+	for i := 0; i < int(col.numItems); i++ {
 		newData[i] = col.data[i]
 	}
 
