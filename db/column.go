@@ -34,14 +34,14 @@ func (col *column) LoadColumn(vals []int64) error {
 	return nil
 }
 
-func (col *column) AppendItem(item int64) error {
+func (col *column) InsertItem(item int64) error {
 	col.lock.Lock()
 	defer col.lock.Unlock()
 
 	if int(col.numItems + 1) > len(col.data) {
 		col.resizeData(int64(2 * len(col.data)))
 	}
-	col.data[int(col.numItems + 1)] = item
+	col.data[int(col.numItems)] = item
 	col.numItems +=1
 
 	return nil
@@ -50,7 +50,7 @@ func (col *column) AppendItem(item int64) error {
 func (col *column) resizeData(newLength int64) {
 	newData := make([]int64, newLength)
 
-	for i := range col.numItems {
+	for i := range int(col.numItems) {
 		newData[i] = col.data[i] 
 	}
 
