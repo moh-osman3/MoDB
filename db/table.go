@@ -6,15 +6,15 @@ import (
 )
 
 type table struct {
-	cols map[string]*column
+	cols    map[string]*column
 	numCols int64
 	numRows int64
-	lock sync.Mutex
+	lock    sync.Mutex
 }
 
 func NewTable() *table {
 	return &table{
-		cols: make(map[string]*column),
+		cols:    make(map[string]*column),
 		numCols: 0,
 		numRows: 0,
 	}
@@ -54,6 +54,9 @@ func (tbl *table) InsertRow(colNames []string, vals []int64) error {
 }
 
 func (tbl *table) LoadColumns(colNames []string, cols ...[]int64) error {
+	tbl.lock.Lock()
+	defer tbl.lock.Unlock()
+
 	if len(colNames) != len(cols) {
 		return fmt.Errorf("LoadColumns: validation failed: number of column names does not match number of values: %d != %d", len(colNames), len(cols))
 	}

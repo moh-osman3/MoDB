@@ -6,14 +6,14 @@ import (
 )
 
 type db struct {
-	tables map[string]*table
+	tables    map[string]*table
 	numTables int64
-	lock sync.Mutex
+	lock      sync.Mutex
 }
 
 func NewDb() *db {
 	return &db{
-		tables: make(map[string]*table),
+		tables:    make(map[string]*table),
 		numTables: 0,
 	}
 }

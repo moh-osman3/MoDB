@@ -15,15 +15,15 @@ type Manager interface {
 }
 
 type defaultManager struct {
-	dbs map[string]*db
+	dbs    map[string]*db
 	numDbs int64
 	logger *zap.Logger
-	lock sync.Mutex
+	lock   sync.Mutex
 }
 
 func NewDefaultManager(logger *zap.Logger) *defaultManager {
 	return &defaultManager{
-		dbs: make(map[string]*db),
+		dbs:    make(map[string]*db),
 		numDbs: 0,
 		logger: logger,
 	}

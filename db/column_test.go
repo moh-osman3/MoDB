@@ -7,7 +7,6 @@ import (
 	"go.uber.org/zap"
 )
 
-
 func TestInsertColumn(t *testing.T) {
 	manager := NewDefaultManager(zap.NewNop())
 
@@ -24,9 +23,9 @@ func TestInsertColumn(t *testing.T) {
 
 	vals1 := make([]int64, defaultColumnSize-10)
 	vals2 := make([]int64, defaultColumnSize-10)
-	for i := range(defaultColumnSize-10) {
+	for i := range defaultColumnSize - 10 {
 		vals1[i] = int64(i)
-		vals2[i] = int64(i*i)
+		vals2[i] = int64(i * i)
 	}
 
 	err = col1.LoadColumn(vals1)
@@ -45,9 +44,9 @@ func TestInsertColumn(t *testing.T) {
 	// testing resizing works as expected
 	vals1 = make([]int64, defaultColumnSize+10)
 	vals2 = make([]int64, defaultColumnSize+10)
-	for i := range(defaultColumnSize+10) {
+	for i := range defaultColumnSize + 10 {
 		vals1[i] = int64(i)
-		vals2[i] = int64(i*i)
+		vals2[i] = int64(i * i)
 	}
 
 	err = col1.LoadColumn(vals1)
@@ -77,7 +76,7 @@ func TestInsertItem(t *testing.T) {
 	assert.NoError(t, err)
 
 	vals1 := make([]int64, defaultColumnSize)
-	for i := range(defaultColumnSize) {
+	for i := range defaultColumnSize {
 		vals1[i] = int64(i)
 	}
 
@@ -85,7 +84,7 @@ func TestInsertItem(t *testing.T) {
 	assert.NoError(t, err)
 
 	// add an overflow item
-	col1.InsertItem(int64(defaultColumnSize+1))
+	col1.InsertItem(int64(defaultColumnSize + 1))
 	vals1 = append(vals1, defaultColumnSize+1)
 
 	assert.Equal(t, int64(defaultColumnSize+1), col1.numItems)
