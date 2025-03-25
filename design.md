@@ -18,8 +18,10 @@ col2, _ := tbl.CreateColumn(colName2)
 ### Insert
 
 ```
-col1.LoadColumn(colValSlice)
-tbl.InsertRow(rowValSlice)
+col1.LoadColumn(vals []int64)
+col2.InsertItem(val int64)
+tbl.LoadColumns(colNames []string, colVals ...[]int64)
+tbl.InsertRow(colNames []string, rowVals []int64)
 ```
 
 ### Get
