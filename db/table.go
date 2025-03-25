@@ -29,5 +29,6 @@ func (tbl *table) CreateColumn(colName string) (*column, error) {
 
 	col := NewColumn(colName)
 	tbl.cols[colName] = col
+	tbl.numCols += 1
 	return col, nil
 }

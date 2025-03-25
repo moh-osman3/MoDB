@@ -11,7 +11,7 @@ import (
 type Manager interface {
 	Start(ctx context.Context) error
 	End() error
-	CreateDb(dbName string) error
+	CreateDb(dbName string) (*db, error)
 }
 
 type defaultManager struct {
@@ -46,5 +46,6 @@ func (dbm *defaultManager) CreateDb(dbName string) (*db, error) {
 
 	db := NewDb()
 	dbm.dbs[dbName] = db
+	dbm.numDbs += 1
 	return db, nil
 }

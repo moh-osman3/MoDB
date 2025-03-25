@@ -27,5 +27,6 @@ func (db *db) CreateTable(tblName string) (*table, error) {
 
 	tbl := NewTable()
 	db.tables[tblName] = tbl
+	db.numTables += 1
 	return tbl, nil
 }

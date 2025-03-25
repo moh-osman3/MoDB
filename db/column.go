@@ -4,7 +4,7 @@ import (
 	"sync"
 )
 
-const defaultColumnSize = 1000000
+const defaultColumnSize = 10000
 
 type column struct {
 	data []int64
@@ -28,6 +28,8 @@ func (col *column) LoadColumn(vals []int64) error {
 	for i, val := range vals {
 		col.data[i] = val 
 	}
+
+	col.numItems = int64(len(vals))
 
 	return nil
 }
