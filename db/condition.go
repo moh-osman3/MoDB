@@ -1,11 +1,14 @@
 package db
 
 import (
+	"sort"
 	"sync"
+
+	"go.uber.org/zap"
 )
 
 type condition struct {
-	ids map[int]bool
+	ids map[int64]bool
 	numResults int
 	cols []string
 	logger *zap.Logger
@@ -18,26 +21,26 @@ func (c *condition) Get(cols []*column) [][]int64 {
 	defer c.lock.RUnlock()
 
 	if c.numResults == 0 {
-		logger.Debug("No results found for query condition")
+		c.logger.Debug("No results found for query condition")
 		return [][]int64{}
 	}
 
-	sortedIds := make([]int, c.numResults)
+	sortedIds := make([]int64, c.numResults)
 	i := 0
 	for key, _ := range c.ids {
-		idSlice[i] = key
+		sortedIds[i] = key
 		i += 1
 	}
-	sort.Ints(sortedIds)
+	sort.Slice(sortedIds, func(i, j int) bool {return sortedIds[i] < sortedIds[j]})
 
-	res := make([][]int, len(cols))
-	for _, col := range cols {
-		colRes := make([]int, numResults)
-		for i := 0; i < numResults; i++ {
+	res := make([][]int64, len(cols))
+	for k, col := range cols {
+		colRes := make([]int64, c.numResults)
+		for i := 0; i < c.numResults; i++ {
 			resIdx := sortedIds[i]
 			colRes[i] = col.data[resIdx]
 		}
-		res = append(res, colRes)
+		res[k] = colRes 
 	}
 
 	return res
@@ -49,7 +52,7 @@ func (c *condition) Select(col *column, lower int64, upper int64) {
 
 	for i, item := range col.data {
 		if item >= lower && item < upper {
-			c.ids[i] = true
+			c.ids[int64(i)] = true
 			c.numResults += 1
 		}
 	}
