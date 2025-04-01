@@ -95,3 +95,7 @@ func (tbl *table) LoadColumns(colNames []string, cols ...[]int64) error {
 
 	return nil
 }
+
+func (tbl *table) Get(c *condition, cols []*column) [][]int64 {
+	return c.Get(cols)
+}
