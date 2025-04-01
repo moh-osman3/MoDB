@@ -15,6 +15,13 @@ type condition struct {
 	lock sync.RWMutex
 }
 
+func NewCondition(logger *zap.Logger) *condition {
+	return &condition{
+		numResults: 0,
+		ids: make(map[int64]bool),
+	}
+}
+
 // Get will fetch the ids that match the condition in the provided column names.
 func (c *condition) Get(cols []*column) [][]int64 {
 	c.lock.RLock()
