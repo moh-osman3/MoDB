@@ -8,17 +8,17 @@ import (
 )
 
 type condition struct {
-	ids map[int64]bool
+	ids        map[int64]bool
 	numResults int
-	cols []string
-	logger *zap.Logger
-	lock sync.RWMutex
+	cols       []string
+	logger     *zap.Logger
+	lock       sync.RWMutex
 }
 
 func NewCondition(logger *zap.Logger) *condition {
 	return &condition{
 		numResults: 0,
-		ids: make(map[int64]bool),
+		ids:        make(map[int64]bool),
 	}
 }
 
@@ -32,13 +32,13 @@ func (c *condition) Get(cols []*column) [][]int64 {
 		return [][]int64{}
 	}
 
-	sortedIds := make([]int64, c.numResults)
+	sortedIds := make([]int64, len(c.ids))
 	i := 0
-	for key, _ := range c.ids {
+	for key := range c.ids {
 		sortedIds[i] = key
 		i += 1
 	}
-	sort.Slice(sortedIds, func(i, j int) bool {return sortedIds[i] < sortedIds[j]})
+	sort.Slice(sortedIds, func(i, j int) bool { return sortedIds[i] < sortedIds[j] })
 
 	res := make([][]int64, len(cols))
 	for k, col := range cols {
@@ -47,7 +47,7 @@ func (c *condition) Get(cols []*column) [][]int64 {
 			resIdx := sortedIds[i]
 			colRes[i] = col.data[resIdx]
 		}
-		res[k] = colRes 
+		res[k] = colRes
 	}
 
 	return res
@@ -76,7 +76,7 @@ func (c *condition) Or(newCond *condition) {
 
 	newCond.lock.RLock()
 	defer newCond.lock.RUnlock()
-	for newId, _ := range newCond.ids {
+	for newId := range newCond.ids {
 		if _, ok := c.ids[newId]; !ok {
 			c.ids[newId] = true
 			c.numResults += 1
@@ -95,7 +95,7 @@ func (c *condition) And(newCond *condition) {
 
 	newCond.lock.RLock()
 	defer newCond.lock.RUnlock()
-	for id, _ := range c.ids {
+	for id := range c.ids {
 		if _, ok := newCond.ids[id]; !ok {
 			delete(c.ids, id)
 			c.numResults -= 1

@@ -43,9 +43,9 @@ func TestCondition(t *testing.T) {
 	t.Run("basic select and get", func(t *testing.T) {
 		c.Select(col1, 2, 6)
 
-		expectIds := []int64{1,2,3,4}
+		expectIds := []int64{1, 2, 3, 4}
 		actualIds := []int64{}
-		for key, _ := range c.ids {
+		for key := range c.ids {
 			actualIds = append(actualIds, key)
 		}
 		assert.ElementsMatch(t, expectIds, actualIds)
@@ -58,17 +58,17 @@ func TestCondition(t *testing.T) {
 	c2 := NewCondition(zap.NewNop())
 	t.Run("Or condition", func(t *testing.T) {
 		c2.Select(col2, 30, 81)
-		expectIds := []int64{5,6,7}
+		expectIds := []int64{5, 6, 7}
 		actualIds := []int64{}
-		for key, _ := range c2.ids {
+		for key := range c2.ids {
 			actualIds = append(actualIds, key)
 		}
 		assert.ElementsMatch(t, expectIds, actualIds)
 
 		c.Or(c2)
-		expectIds = []int64{1,2,3,4,5,6,7}
+		expectIds = []int64{1, 2, 3, 4, 5, 6, 7}
 		actualIds = []int64{}
-		for key, _ := range c.ids {
+		for key := range c.ids {
 			actualIds = append(actualIds, key)
 		}
 		assert.ElementsMatch(t, expectIds, actualIds)
@@ -80,9 +80,9 @@ func TestCondition(t *testing.T) {
 
 	t.Run("And condition", func(t *testing.T) {
 		c.And(c2)
-		expectIds := []int64{5,6,7}
+		expectIds := []int64{5, 6, 7}
 		actualIds := []int64{}
-		for key, _ := range c2.ids {
+		for key := range c2.ids {
 			actualIds = append(actualIds, key)
 		}
 		assert.ElementsMatch(t, expectIds, actualIds)
