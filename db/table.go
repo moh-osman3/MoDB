@@ -3,12 +3,15 @@ package db
 import (
 	"fmt"
 	"sync"
+
+	"go.uber.org/multierr"
 )
 
 type table struct {
 	cols    map[string]*column
 	numCols int64
 	numRows int64
+	deletes map[int64]bool
 	lock    sync.Mutex
 }
 
@@ -17,6 +20,7 @@ func NewTable() *table {
 		cols:    make(map[string]*column),
 		numCols: 0,
 		numRows: 0,
+		deletes: make(map[int64]bool),
 	}
 }
 
@@ -97,5 +101,53 @@ func (tbl *table) LoadColumns(colNames []string, cols ...[]int64) error {
 }
 
 func (tbl *table) Get(c *condition, cols []*column) [][]int64 {
+	tbl.lock.Lock()
+	defer tbl.lock.Unlock()
+
+	c.lock.Lock()
+	for id := range c.ids {
+		if _, ok := tbl.deletes[id]; ok {
+			delete(c.ids, id)
+		}
+	}
+	c.lock.Unlock()
+
 	return c.Get(cols)
+}
+
+func (tbl *table) DeleteColumnInternal(colName string) error {
+	if _, ok := tbl.cols[colName]; !ok {
+		return fmt.Errorf("Cannot delete column with name %s: does not exist", colName)
+	}
+
+	delete(tbl.cols, colName)
+	return nil
+}
+func (tbl *table) DeleteColumn(colName string) error {
+	tbl.lock.Lock()
+	defer tbl.lock.Unlock()
+
+	return tbl.DeleteColumnInternal(colName)
+}
+
+func (tbl *table) DeleteColumns() error {
+	tbl.lock.Lock()
+	defer tbl.lock.Unlock()
+
+	var errors, err error
+	for name := range tbl.cols {
+		err = tbl.DeleteColumnInternal(name)
+		errors = multierr.Append(errors, err)
+	}
+
+	return errors
+}
+
+func (tbl *table) DeleteRow(idx int64) error {
+	if idx > tbl.numRows {
+		return fmt.Errorf("Cannot delete row with id %d: does not exist", idx)
+	}
+
+	tbl.deletes[idx] = true
+	return nil
 }
