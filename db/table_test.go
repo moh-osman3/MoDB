@@ -194,7 +194,7 @@ func TestDeleteRow(t *testing.T) {
 	err = tbl1.DeleteRows([]int64{30})
 	assert.ErrorContains(t, err, "does not exist")
 
-	err = tbl1.DeleteRows([]int64{0,1,2})
+	err = tbl1.DeleteRows([]int64{0, 1, 2})
 	assert.NoError(t, err)
 
 	c, err := tbl1.Select(col1, 0, 10)

@@ -7,7 +7,7 @@ import (
 const defaultColumnSize = 10000
 
 type column struct {
-	name string
+	name     string
 	data     []int64
 	numItems int64
 	lock     sync.Mutex
@@ -15,7 +15,7 @@ type column struct {
 
 func NewColumn(colName string) *column {
 	return &column{
-		name: colName,
+		name:     colName,
 		data:     make([]int64, defaultColumnSize),
 		numItems: 0,
 	}
