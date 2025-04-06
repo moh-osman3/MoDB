@@ -65,5 +65,6 @@ func (dbm *defaultManager) DeleteDb(dbName string) error {
 	}
 
 	delete(dbm.dbs, dbName)
+	dbm.numDbs -= 1
 	return nil
 }

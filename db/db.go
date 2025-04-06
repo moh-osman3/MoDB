@@ -50,6 +50,7 @@ func (db *db) DeleteTableInternal(tblName string) error {
 	}
 
 	delete(db.tables, tblName)
+	db.numTables -= 1
 	return nil
 }
 

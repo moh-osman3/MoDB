@@ -100,19 +100,43 @@ func (tbl *table) LoadColumns(colNames []string, cols ...[]int64) error {
 	return nil
 }
 
-func (tbl *table) Get(c *condition, cols []*column) [][]int64 {
+func (tbl *table) Get(c *condition, cols []*column) ([][]int64, error) {
 	tbl.lock.Lock()
 	defer tbl.lock.Unlock()
+
+	var errors error
+	var existingCols []*column
+	for _, col := range cols {
+		if _, ok := tbl.cols[col.name]; ok {
+			existingCols = append(existingCols, col)
+			continue
+		}
+		errors = multierr.Append(errors, fmt.Errorf("Could not fetch column %s: column deleted", col.name))
+	}
 
 	c.lock.Lock()
 	for id := range c.ids {
 		if _, ok := tbl.deletes[id]; ok {
 			delete(c.ids, id)
+			c.numResults -= 1
 		}
 	}
 	c.lock.Unlock()
 
-	return c.Get(cols)
+	return c.Get(existingCols), errors
+}
+
+func (tbl *table) Select(col *column, lower int64, upper int64) (*condition, error) {
+	tbl.lock.Lock()
+	defer tbl.lock.Unlock()
+
+	if _, ok := tbl.cols[col.name]; !ok {
+		return nil, fmt.Errorf("Could not select from column %s: column not found", col.name)
+	}
+
+	c := NewCondition()
+	c.Select(col, lower, upper)
+	return c, nil
 }
 
 func (tbl *table) DeleteColumnInternal(colName string) error {
@@ -121,8 +145,10 @@ func (tbl *table) DeleteColumnInternal(colName string) error {
 	}
 
 	delete(tbl.cols, colName)
+	tbl.numCols -= 1
 	return nil
 }
+
 func (tbl *table) DeleteColumn(colName string) error {
 	tbl.lock.Lock()
 	defer tbl.lock.Unlock()
@@ -143,11 +169,14 @@ func (tbl *table) DeleteColumns() error {
 	return errors
 }
 
-func (tbl *table) DeleteRow(idx int64) error {
-	if idx > tbl.numRows {
-		return fmt.Errorf("Cannot delete row with id %d: does not exist", idx)
-	}
+func (tbl *table) DeleteRows(ids []int64) error {
+	var errors error
+	for _, idx := range ids {
+		if idx > tbl.numRows {
+			errors = multierr.Append(errors, fmt.Errorf("Cannot delete row with id %d: does not exist", idx))
+		}
 
-	tbl.deletes[idx] = true
-	return nil
+		tbl.deletes[idx] = true
+	}
+	return errors
 }

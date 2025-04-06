@@ -36,7 +36,7 @@ func TestCondition(t *testing.T) {
 	vals2 := []int64{1, 4, 9, 16, 25, 36, 49, 64, 81}
 	tbl := setupTable(t, [][]int64{vals1, vals2})
 
-	c := NewCondition(zap.NewNop())
+	c := NewCondition()
 
 	col1 := tbl.cols["col1"]
 	col2 := tbl.cols["col2"]
@@ -55,7 +55,7 @@ func TestCondition(t *testing.T) {
 		assert.EqualValues(t, expectVals, actualVals)
 	})
 
-	c2 := NewCondition(zap.NewNop())
+	c2 := NewCondition()
 	t.Run("Or condition", func(t *testing.T) {
 		c2.Select(col2, 30, 81)
 		expectIds := []int64{5, 6, 7}
