@@ -3,12 +3,15 @@ package db
 import (
 	"fmt"
 	"sync"
+
+	"go.uber.org/multierr"
 )
 
 type table struct {
 	cols    map[string]*column
 	numCols int64
 	numRows int64
+	deletes map[int64]bool
 	lock    sync.Mutex
 }
 
@@ -17,6 +20,7 @@ func NewTable() *table {
 		cols:    make(map[string]*column),
 		numCols: 0,
 		numRows: 0,
+		deletes: make(map[int64]bool),
 	}
 }
 
@@ -96,6 +100,83 @@ func (tbl *table) LoadColumns(colNames []string, cols ...[]int64) error {
 	return nil
 }
 
-func (tbl *table) Get(c *condition, cols []*column) [][]int64 {
-	return c.Get(cols)
+func (tbl *table) Get(c *condition, cols []*column) ([][]int64, error) {
+	tbl.lock.Lock()
+	defer tbl.lock.Unlock()
+
+	var errors error
+	var existingCols []*column
+	for _, col := range cols {
+		if _, ok := tbl.cols[col.name]; ok {
+			existingCols = append(existingCols, col)
+			continue
+		}
+		errors = multierr.Append(errors, fmt.Errorf("Could not fetch column %s: column deleted", col.name))
+	}
+
+	c.lock.Lock()
+	for id := range c.ids {
+		if _, ok := tbl.deletes[id]; ok {
+			delete(c.ids, id)
+			c.numResults -= 1
+		}
+	}
+	c.lock.Unlock()
+
+	return c.Get(existingCols), errors
+}
+
+func (tbl *table) Select(col *column, lower int64, upper int64) (*condition, error) {
+	tbl.lock.Lock()
+	defer tbl.lock.Unlock()
+
+	if _, ok := tbl.cols[col.name]; !ok {
+		return nil, fmt.Errorf("Could not select from column %s: column not found", col.name)
+	}
+
+	c := NewCondition()
+	c.Select(col, lower, upper)
+	return c, nil
+}
+
+func (tbl *table) DeleteColumnInternal(colName string) error {
+	if _, ok := tbl.cols[colName]; !ok {
+		return fmt.Errorf("Cannot delete column with name %s: does not exist", colName)
+	}
+
+	delete(tbl.cols, colName)
+	tbl.numCols -= 1
+	return nil
+}
+
+func (tbl *table) DeleteColumn(colName string) error {
+	tbl.lock.Lock()
+	defer tbl.lock.Unlock()
+
+	return tbl.DeleteColumnInternal(colName)
+}
+
+func (tbl *table) DeleteColumns() error {
+	tbl.lock.Lock()
+	defer tbl.lock.Unlock()
+
+	var errors, err error
+	for name := range tbl.cols {
+		err = tbl.DeleteColumnInternal(name)
+		errors = multierr.Append(errors, err)
+	}
+
+	return errors
+}
+
+func (tbl *table) DeleteRows(ids []int64) error {
+	var errors error
+	for _, idx := range ids {
+		if idx > tbl.numRows {
+			errors = multierr.Append(errors, fmt.Errorf("Cannot delete row with id %d: does not exist", idx))
+		}
+
+		tbl.deletes[idx] = true
+	}
+	return errors
 }

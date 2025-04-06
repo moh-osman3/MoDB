@@ -3,19 +3,16 @@ package db
 import (
 	"sort"
 	"sync"
-
-	"go.uber.org/zap"
 )
 
 type condition struct {
 	ids        map[int64]bool
 	numResults int
 	cols       []string
-	logger     *zap.Logger
 	lock       sync.RWMutex
 }
 
-func NewCondition(logger *zap.Logger) *condition {
+func NewCondition() *condition {
 	return &condition{
 		numResults: 0,
 		ids:        make(map[int64]bool),
@@ -28,7 +25,6 @@ func (c *condition) Get(cols []*column) [][]int64 {
 	defer c.lock.RUnlock()
 
 	if c.numResults == 0 {
-		c.logger.Debug("No results found for query condition")
 		return [][]int64{}
 	}
 
@@ -57,7 +53,11 @@ func (c *condition) Select(col *column, lower int64, upper int64) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
-	for i, item := range col.data {
+	col.lock.Lock()
+	defer col.lock.Unlock()
+
+	for i := 0; i < int(col.numItems); i++ {
+		item := col.data[i]
 		if item >= lower && item < upper {
 			c.ids[int64(i)] = true
 			c.numResults += 1

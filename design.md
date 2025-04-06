@@ -27,14 +27,11 @@ tbl.InsertRow(colNames []string, rowVals []int64)
 ### Get
 
 ```
-c1 := NewCondition(logger)
-c1.Select(col1, 0, 100)
+c1 := tbl.Select(col1, 0, 100)
 
-c2 := NewCondition(logger)
-c2.Select(col2, -30, 10)
+c2 := tbl.Select(col2, -30, 10)
 
-c3 := NewCondition(logger)
-c3.Select(col3, 50, 60)
+c3 := tbl.Select(col3, 50, 60)
 
 // c1 && (c2 || c3)
 c2.Or(c3)
@@ -47,9 +44,11 @@ tbl.Get(c1, []*column{col1, col2})
 ### Delete
 
 ```
-dbManager.DeleteRow(dbName, tableName, idxSlice)
-dbManager.DeleteColumn(dbName, tableName, colName)
-dbManager.DeleteTable(dbName, tableName)
+idsToDelete := []int64{0,1,2,3}
+tbl.DeleteRows(idsToDelete)
+
+tbl.DeleteColumn(colName)
+db.DeleteTable(tblName)
 dbManager.DeleteDb(dbName)
 ```
 
